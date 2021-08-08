@@ -28,17 +28,26 @@ print(f"Logged in as: {reddit.user.me()}")
 
 
 def generator(subreddit='all', last_id='', amount=config.PAGE_ITEM_AMOUNT):
+    """
+    This function returns a generator which you can loop for posts
+    """
     params = {}
     if last_id != '':
         params['after'] = f't3_{last_id}'
 
+    # frontpage/subscribed
     if subreddit == 'front':
         return reddit.front.top(time_filter='week', limit=amount, params=params)
+    
+    # simple hack to search for users multi
     elif 'multi' in subreddit:
         for multireddit in reddit.user.multireddits():
             print(multireddit.display_name)
             if multireddit.display_name == subreddit:
                 return multireddit.new(limit=amount, params=params)
+    
+    # normal subbredit
+    # subreddit1+subreddit2 should work
     else:
         return reddit.subreddit(subreddit).hot(limit=amount, params=params)
 

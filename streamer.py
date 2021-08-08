@@ -1,5 +1,7 @@
 """
-Rewrite HTML with data/
+Stream HTML from generator
+For example the reddit api is rate limited
+With this you can send data between api calls instead of just waiting
 """
 
 import sys
@@ -9,8 +11,7 @@ import http.server
 
 class StreamingParser:
     """
-    Buffered parse static HTML and add dynamic elements while streaming.
-    # TODO mulitple templates and file updates
+    Stream bytes from callback generator
     """
 
     def __init__(self, callback):
@@ -31,15 +32,16 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     static_files = []
 
     def do_GET(self):
-        #print(f"Path: {self.path}")
-        #print(f"Headers: {self.headers}")
+        """
+        Overloaded but for static files use original function with super().do_GET()
+        """
+        # Static files
         if self.path in self.static_files:
             print(f"Static: {self.path}")
             super().do_GET()
+        # Dynamic content based on path
         else:
             print(f"Dynamic: {self.path}")
-            #referer = self.headers.get('Referer')
-            #if referer == None:
             self.parser.output = self.wfile
             self.send_response(200)
             self.send_header("Content-type", "text/html")
@@ -49,7 +51,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
 def create_server(hostname, serverport, static_files, callback):
     """
-    Create server
+    Create streaming server
     """
     print("Creating server")
 

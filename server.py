@@ -11,6 +11,9 @@ import streamer
 import reddit
 
 def format_post(post) -> str:
+    """
+    This function generates a embedded card html code from a PRAW post object
+    """
     good_content = reddit.check(post)
     if good_content:
         parsed = parse.urlparse(post.url)
@@ -88,7 +91,7 @@ def format_post(post) -> str:
 
 def streamer_callback(path: str):
     """
-    Callback generator that yields utf-8 bytes of html
+    Callback generator for the streamer server that yields utf-8 bytes of html code
     """
 
     # parse path
