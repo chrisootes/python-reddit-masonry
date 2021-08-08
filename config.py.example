@@ -1,0 +1,18 @@
+CLIENT_ID = ""
+CLIENT_SECRET = ""
+PASSWORD = ""
+USERNAME = ""
+SERVER_HOSTNAME = "localhost"
+SERVER_PORT = 80
+PAGE_ITEM_AMOUNT = 25
+
+STATIC_FILES = [
+    '/favicon.ico',
+    '/css/bootstrap.min.css',
+    '/css/bootstrap.min.css.map',
+    '/js/bootstrap.bundle.min.js',
+    '/js/bootstrap.bundle.min.js.map',
+    '/js/masonry.pkgd.min.js',
+    '/js/jquery-3.6.0.min.js',
+    '/js/streamer.js'
+]
