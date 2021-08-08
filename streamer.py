@@ -9,26 +9,9 @@ import io
 import http.server
 
 
-class StreamingParser:
-    """
-    Stream bytes from callback generator
-    """
-
-    def __init__(self, callback):
-        self.output = sys.stdout
-        self.callback = callback
-
-    def render(self, path):
-        """
-        Put generator output in http file
-        """
-        for i in self.callback(path):
-            self.output.write(i)
-
-
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.0"
-    parser = StreamingParser(lambda a : a)
+    def callback(a): return a
     static_files = []
 
     def do_GET(self):
@@ -42,11 +25,12 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         # Dynamic content based on path
         else:
             print(f"Dynamic: {self.path}")
-            self.parser.output = self.wfile
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            self.parser.render(self.path)
+            # Put generator output in http file
+            for i in self.callback(self.path):
+                self.wfile.write(i)
 
 
 def create_server(hostname, serverport, static_files, callback):
@@ -55,12 +39,9 @@ def create_server(hostname, serverport, static_files, callback):
     """
     print("Creating server")
 
-    # Setup parser
-    parser = StreamingParser(callback)
-
     # Setup handler
     handler = RequestHandler
-    handler.parser = parser
+    handler.callback = callback
     handler.static_files = static_files
 
     # Setup server
