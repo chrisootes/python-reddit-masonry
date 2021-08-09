@@ -11,7 +11,7 @@ import http.server
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.0"
-    def callback(a): return a
+    callback = lambda a : a
     static_files = []
 
     def do_GET(self):

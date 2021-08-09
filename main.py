@@ -18,9 +18,9 @@ def format_post(post) -> str:
     if good_content:
         parsed = parse.urlparse(post.url)
         response = requests.head(post.url)
-        print(f"Sending {post.id}")
+        print(f"Sending post: {post.id}")
         content_type = response.headers.get('content-type', '')
-        print(f"Content type {content_type}")
+        print(f"Content type: {content_type}")
         if 'image' in content_type:
             return f"""
                 <div id="{post.id}" class="col-sm-12 col-lg-6 col-xxl-4">
@@ -89,7 +89,7 @@ def format_post(post) -> str:
     return ''
 
 
-def streamer_callback(path: str):
+def streamer_callback(self: server.RequestHandler, path: str):
     """
     Callback generator for the streamer server that yields utf-8 bytes of html code
     """
@@ -159,7 +159,7 @@ def streamer_callback(path: str):
 
 
 if __name__ == "__main__":
-    streamer.create_server(
+    server.create_server(
         config.SERVER_HOSTNAME,
         config.SERVER_PORT,
         config.STATIC_FILES,
