@@ -14,5 +14,5 @@ STATIC_FILES = [
     '/js/bootstrap.bundle.min.js.map',
     '/js/masonry.pkgd.min.js',
     '/js/jquery-3.6.0.min.js',
-    '/js/streamer.js'
+    '/js/main.js'
 ]
