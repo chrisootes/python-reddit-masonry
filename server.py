@@ -4,14 +4,15 @@ For example the reddit api is rate limited
 With this you can send data between api calls instead of just waiting
 """
 
-import sys
-import io
 import http.server
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.0"
-    callback = lambda a : a
+    callback = lambda a : [str(a)]
     static_files = []
 
     def do_GET(self):
@@ -20,24 +21,21 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         """
         # Static files
         if self.path in self.static_files:
-            print(f"Static: {self.path}")
+            logger.debug(f"Static: {self.path}")
             super().do_GET()
         # Dynamic content based on path
         else:
-            print(f"Dynamic: {self.path}")
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+            logger.debug(f"Dynamic: {self.path}")
             # Put generator output in http file
             for i in self.callback(self.path):
-                self.wfile.write(i)
+                self.wfile.write(i.encode('utf-8'))
 
 
 def create_server(hostname, serverport, static_files, callback):
     """
     Create streaming server
     """
-    print("Creating server")
+    logger.debug("Creating server")
 
     # Setup handler
     handler = RequestHandler
@@ -46,10 +44,10 @@ def create_server(hostname, serverport, static_files, callback):
 
     # Setup server
     server = http.server.HTTPServer((hostname, serverport), handler)
-    print(f"Starting server on http://{hostname}:{serverport}")
+    logger.debug(f"Starting server on http://{hostname}:{serverport}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     server.server_close()
-    print("Server stopped")
+    logger.debug("Server stopped")

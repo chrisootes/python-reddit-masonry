@@ -19,9 +19,9 @@ function append() {
         last_page = next_page_link;
         console.debug('Adding: ', next_page_link);
         // Request next page
-        // With ?infinite=true we dont have to find de items on the page DOM
+        // With ?items_only=true we dont have to find de items on the page DOM
         // It gives only the html code with items
-        $.get(next_page_link + '?infinite=true', function (data, status) {
+        $.get(next_page_link + '?items_only=true', function (data, status) {
             // Make jQuery object
             $last_elems = $(data);
             // Add jQuery object and update masonry
@@ -31,7 +31,7 @@ function append() {
             // Replace next page url with new one
             // The last 5 characters of the path are the id of last post
             // TODO Maybe lass hacky to use split('/')
-            new_page = last_page.slice(0, -6) + $last_elems.get(-1).id; 
+            new_page = '/' + last_page.split('/')[1] + '/' + $last_elems.get(-1).id; 
             $(".next-page").attr('href', new_page)
             // Enable scroll events
             $(window).on("scroll", scroll_event);
