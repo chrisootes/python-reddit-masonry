@@ -30,13 +30,26 @@ def format_post(post: dict) -> str:
                 </div>
             """
         elif 'v.redd.it' in post['url']:
+            if post['media'] is not None:
+                return f"""
+                    <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
+                        <div class="card">
+                            <video data-dashjs-player autoplay src="{post['media']['reddit_video']['dash_url']}" controls></video>
+                            <div class="card-body">
+                                <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                            </div>
+                        </div>
+                    </div>
+                """
+        elif 'imgur' in post['url'] and ('gif' in post['url'] or 'mp4' in post['url']):
+            imgur_id = parsed.path.split('.')[0].split('/')[-1]
             return f"""
                 <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                     <div class="card">
+                        <video controls poster="//i.imgur.com/{imgur_id}.jpg" preload="auto" autoplay="autoplay" muted="muted" loop="loop" webkit-playsinline="" style="width: 100%; height: 100%;">
+                            <source src="//i.imgur.com/{imgur_id}.mp4" type="video/mp4">
+                        </video>
                         <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <a href="{post['url']}" class="btn btn-secondary">Video</a>
-                            </div>
                             <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
                         </div>
                     </div>
@@ -47,7 +60,7 @@ def format_post(post: dict) -> str:
             return f"""
                 <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                     <div class="card">
-                        <iframe allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true" class="imgur-embed-iframe-pub" scrolling="no" src="http://imgur.com/{imgur_id}/embed" id="imgur-embed-iframe-pub-{imgur_id}"></iframe>
+                        <blockquote class="imgur-embed-pub" lang="en" data-id="{imgur_id}" ><a href="{post['url']}">{post['title']}</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
                         <div class="card-body">
                             <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
                         </div>
