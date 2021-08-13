@@ -1,10 +1,12 @@
-CLIENT_ID = ""
-CLIENT_SECRET = ""
-PASSWORD = ""
-USERNAME = ""
+REDDIT_CLIENT_ID = ""
+REDDIT_CLIENT_SECRET = ""
+REDDIT_USERNAME = ""
+REDDIT_PASSWORD = ""
+REDDIT_USERAGENT = "github.com/chrisootes/reddit-masonry"
+
 SERVER_HOSTNAME = "localhost"
 SERVER_PORT = 80
-PAGE_ITEM_AMOUNT = 25
+PAGE_ITEM_AMOUNT = 25 
 
 STATIC_FILES = [
     '/favicon.ico',
