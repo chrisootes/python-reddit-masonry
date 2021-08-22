@@ -78,15 +78,27 @@ async def app(scope, receive, send):
                 return
 
         # Check for subredit in path
-        subreddit = 'front'
-        generator_type = session.generator_front
-        if len(path_splitted) >= 3:
+        if len(path_splitted) <= 2:
+            if path_splitted[1] == '':
+                subreddit = 'front'
+                generator_type = session.generator_front
+            else:
+                raise Exception(f"Invalid endpoint: {path_splitted}")
+        elif len(path_splitted) == 3:
             if path_splitted[1] == 'r':
                 if path_splitted[2] != '':
-                    subreddit = path_splitted[1]
+                    subreddit = path_splitted[2]
                     generator_type = session.generator_subredit
                 else:
                     raise Exception("Empty subreddit given")
+            elif path_splitted[1] == 'multi':
+                if path_splitted[2] != '':
+                    subreddit = path_splitted[2]
+                    generator_type = session.generator_multi
+                else:
+                    raise Exception("Empty multi given")
+        else:
+            raise Exception(f"To long endpoint: {path_splitted}")
 
         if subreddit == 'undefined':
             raise Exception("Page was previously not completly loaded")
@@ -156,7 +168,7 @@ async def app(scope, receive, send):
                     elif splitted[1] == 'page':
                         await send({
                             'type': 'http.response.body',
-                            'body': f"/{subreddit}?after={after}".encode('utf-8'),
+                            'body': f"{scope['path']}?after={after}".encode('utf-8'),
                             'more_body': True
                         })
 
@@ -189,13 +201,15 @@ async def app(scope, receive, send):
                         'body': line.encode('utf-8'),
                         'more_body': True
                     })
+
+            # End more body
+            await send({
+                'type': 'http.response.body',
+                'body': b'',
+                'more_body': False
+            })
     except:
         logger.exception("Catched exception")
-
-    await send({
-        'type': 'http.response.body',
-        'body': b'...crashed',
-        'more_body': False
-    })
+        # TODO send something else
 
 
