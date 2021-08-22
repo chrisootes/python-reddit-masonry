@@ -15,3 +15,5 @@
 ## TODO
 * Streamable embedded
 * Better embedded, like auto play
+* Extend isntead callback
+* async server

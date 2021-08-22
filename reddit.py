@@ -11,7 +11,6 @@ import demoji
 
 import config
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # demoji.download_codes()
@@ -73,7 +72,47 @@ class Reddit:
         response_json = response.json()
         return response_json
 
-    def generator(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
+    def generator_front(self, subreddit=None, order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
+        """
+        This function returns a generator which you can loop for posts
+        
+        """
+        params = {
+            'g': 'GLOBAL',
+            'after': start_after,
+            'before': '',
+            'count': 0,
+            'limit': limit,
+        }
+        
+        endpoint = f'/{order}'
+        listing = self.request(endpoint, params=params)
+        for post in listing['data']['children']:
+            yield post['data']
+
+        logger.debug(f"Used: {self.ratelimit_used}")
+
+    def generator_subredit(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
+        """
+        This function returns a generator which you can loop for posts
+        For normal subbredit and subreddit1+subreddit2 should work
+        """
+        params = {
+            'g': 'GLOBAL',
+            'after': start_after,
+            'before': '',
+            'count': 0,
+            'limit': limit,
+        }
+        endpoint = f'r/{subreddit}/{order}'
+
+        listing = self.request(endpoint, params=params)
+        for post in listing['data']['children']:
+            yield post['data']
+
+        logger.debug(f"Used: {self.ratelimit_used}")
+
+    def generator_multi(self, multi='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
         """
         This function returns a generator which you can loop for posts
         
@@ -86,23 +125,11 @@ class Reddit:
             'limit': limit,
         }
 
-        endpoint = '/r/all/hot'
+        endpoint_multi = f'/api/multi/{multi}'
 
-        # frontpage/subscribed
-        if subreddit == 'front':
-            endpoint = f'/{order}'
-
-        # simple hack to search for users multi if it start with 'multi'
-        elif 'multi' in subreddit:
-            endpoint_multi = f'/api/multi/{subreddit}'
-            # convert list to endpoint
-            subreddits = self.request(endpoint_multi)
-            endpoint = f'r/{subreddits}/{order}'
-
-        # normal subbredit
-        # subreddit1+subreddit2 should work
-        else:
-            endpoint = f'r/{subreddit}/{order}'
+        # Convert list of subbreddits in multi to endpoint
+        subreddits = self.request(endpoint_multi)
+        endpoint = f'r/{subreddits}/{order}'
 
         listing = self.request(endpoint, params=params)
         for post in listing['data']['children']:
@@ -188,16 +215,14 @@ class Reddit:
             logger.exception(f"Post failed: {post['name']}")
 
 
-session: Reddit = None
-
-
 # Test
 if __name__ == "__main__":
-    test = Reddit()
-    logger.debug(f"Access token: {test.access_token}")
-    response = test.request('/api/v1/me')
+    logging.basicConfig(level=logging.DEBUG)
+    session = Reddit()
+    logger.debug(f"Access token: {session.access_token}")
+    response = session.request('/api/v1/me')
     logger.debug(f"Name: {response['name']}")
-    for post in test.generator():
+    for post in session.generator():
         logger.debug(f"Title: {post['title']}")
-    logger.debug(f"Used: {test.ratelimit_used}")
+    logger.debug(f"Used: {session.ratelimit_used}")
 

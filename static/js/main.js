@@ -17,11 +17,12 @@ function append() {
         console.debug('Already added');
     } else {
         last_page = next_page_link;
-        console.debug('Adding: ', next_page_link);
+        next_page_raw = next_page_link + '&raw=true'
+        console.debug('Adding: ', next_page_raw);
         // Request next page
         // With ?items_only=true we dont have to find de items on the page DOM
         // It gives only the html code with items
-        $.get(next_page_link + '?items_only=true', function (data, status) {
+        $.get(next_page_raw, function (data, status) {
             // Make jQuery object
             $last_elems = $(data);
             // Add jQuery object and update masonry
@@ -30,9 +31,9 @@ function append() {
             setTimeout(update, 2000);
             // Replace next page url with new one
             // The last 5 characters of the path are the id of last post
-            // TODO Maybe lass hacky to use split('/')
-            new_page = '/' + last_page.split('/')[1] + '/' + $last_elems.get(-1).id; 
-            $(".next-page").attr('href', new_page)
+            // TODO use libary to parse and create url
+            new_page_link = last_page.split('?')[0] + '?after=' + $last_elems.get(-1).id; 
+            $(".next-page").attr('href', new_page_link)
             // Enable scroll events
             $(window).on("scroll", scroll_event);
         });
