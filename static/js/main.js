@@ -23,6 +23,7 @@ function append() {
         // With ?items_only=true we dont have to find de items on the page DOM
         // It gives only the html code with items
         $.get(next_page_raw, function (data, status) {
+            console.debug('Status: ', status);
             // Make jQuery object
             $last_elems = $(data);
             // Add jQuery object and update masonry
@@ -32,8 +33,9 @@ function append() {
             // Replace next page url with new one
             // The last 5 characters of the path are the id of last post
             // TODO use libary to parse and create url
-            new_page_link = last_page.split('?')[0] + '?after=' + $last_elems.get(-1).id; 
-            $(".next-page").attr('href', new_page_link)
+            new_next_page_link = last_page.split('?')[0] + '?after=' + $last_elems.get(-1).id; 
+            console.debug('New next page link: ', new_next_page_link);
+            $(".next-page").attr('href', new_next_page_link)
             // Enable scroll events
             $(window).on("scroll", scroll_event);
         });

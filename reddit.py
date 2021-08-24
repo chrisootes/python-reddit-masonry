@@ -112,7 +112,7 @@ class Reddit:
 
         logger.debug(f"Used: {self.ratelimit_used}")
 
-    def generator_multi(self, multi='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
+    def generator_multi(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
         """
         This function returns a generator which you can loop for posts
         
@@ -125,7 +125,7 @@ class Reddit:
             'limit': limit,
         }
 
-        endpoint_multi = f'/api/multi/{multi}'
+        endpoint_multi = f'/api/multi/{subreddit}'
 
         # Convert list of subbreddits in multi to endpoint
         subreddits = self.request(endpoint_multi)

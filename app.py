@@ -130,75 +130,11 @@ async def app(scope, receive, send):
             posts = generator_type(subreddit=subreddit, start_after=after)
             for post in posts:
                 after = post['name']
-                await send({
-                    'type': 'http.response.body',
-                    'body': helpers.format_post(post).encode('utf-8'),
-                    'more_body': True
-                })
-
-        else:
-            template = await aiofiles.open('template_page.html', mode='r')
-            # Loop template
-            while True:
-                line = await template.readline()
-                # Chek for end file
-                if line == '':
-                    break
-                # Check for template item
-                elif '$' in line:
-                    splitted = line.split('$')
-                    #logger.debug(f"Splitted template: {splitted}")
-                    # Send everythin before first $
+                # TODO make filter a POST option like raw
+                if session.check(post):
                     await send({
                         'type': 'http.response.body',
-                        'body': splitted[0].encode('utf-8'),
-                        'more_body': True
-                    })
-                    # Send between
-            
-                    # Template key: date
-                    if splitted[1] == 'date':
-                        await send({
-                            'type': 'http.response.body',
-                            'body': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").encode('utf-8'),
-                            'more_body': True
-                        })
-
-                    # Template key: page
-                    elif splitted[1] == 'page':
-                        await send({
-                            'type': 'http.response.body',
-                            'body': f"{scope['path']}?after={after}".encode('utf-8'),
-                            'more_body': True
-                        })
-
-                    # Template key: items
-                    elif splitted[1] == 'items':
-                        logger.debug(f"Getting {subreddit} on page {after}")
-                        posts = generator_type(subreddit=subreddit, start_after=after)
-                        for post in posts:
-                            # Used in template key: page
-                            after = post['name']
-                            # TODO make filter a POST option like raw
-                            if session.check(post):
-                                await send({
-                                    'type': 'http.response.body',
-                                    'body': helpers.format_post(post).encode('utf-8'),
-                                    'more_body': True
-                                })
-
-                    # Send everythin after second $
-                    await send({
-                        'type': 'http.response.body',
-                        'body': splitted[2].encode('utf-8'),
-                        'more_body': True
-                    })
-
-                # Everything else is static content
-                else:
-                    await send({
-                        'type': 'http.response.body',
-                        'body': line.encode('utf-8'),
+                        'body': helpers.format_post(post).encode('utf-8'),
                         'more_body': True
                     })
 
@@ -208,6 +144,79 @@ async def app(scope, receive, send):
                 'body': b'',
                 'more_body': False
             })
+            return
+
+        template = await aiofiles.open('template_page.html', mode='r')
+        # Loop template
+        while True:
+            line = await template.readline()
+            # Chek for end file
+            if line == '':
+                break
+            # Check for template item
+            elif '$' in line:
+                splitted = line.split('$')
+                #logger.debug(f"Splitted template: {splitted}")
+                # Send everythin before first $
+                await send({
+                    'type': 'http.response.body',
+                    'body': splitted[0].encode('utf-8'),
+                    'more_body': True
+                })
+                # Send between
+        
+                # Template key: date
+                if splitted[1] == 'date':
+                    await send({
+                        'type': 'http.response.body',
+                        'body': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S").encode('utf-8'),
+                        'more_body': True
+                    })
+
+                # Template key: page
+                elif splitted[1] == 'page':
+                    await send({
+                        'type': 'http.response.body',
+                        'body': f"{scope['path']}?after={after}".encode('utf-8'),
+                        'more_body': True
+                    })
+
+                # Template key: items
+                elif splitted[1] == 'items':
+                    logger.debug(f"Getting {subreddit} on page {after}")
+                    posts = generator_type(subreddit=subreddit, start_after=after)
+                    for post in posts:
+                        # Used in template key: page
+                        after = post['name']
+                        # TODO make filter a POST option like raw
+                        if session.check(post):
+                            await send({
+                                'type': 'http.response.body',
+                                'body': helpers.format_post(post).encode('utf-8'),
+                                'more_body': True
+                            })
+
+                # Send everythin after second $
+                await send({
+                    'type': 'http.response.body',
+                    'body': splitted[2].encode('utf-8'),
+                    'more_body': True
+                })
+
+            # Everything else is static content
+            else:
+                await send({
+                    'type': 'http.response.body',
+                    'body': line.encode('utf-8'),
+                    'more_body': True
+                })
+
+        # End more body
+        await send({
+            'type': 'http.response.body',
+            'body': b'',
+            'more_body': False
+        })
     except:
         logger.exception("Catched exception")
         # TODO send something else
