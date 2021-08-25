@@ -3,9 +3,9 @@
 import datetime
 import urllib.parse
 import logging
+import mimetypes
 
 import aiofiles
-import mimetypes
 
 import config
 import reddit

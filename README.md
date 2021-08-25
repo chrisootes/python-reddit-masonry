@@ -4,6 +4,7 @@
 * Uses https://getbootstrap.com/ for theming
 * Uses https://jquery.com/ for infinite scroll
 * Needs requests: pip install requests
+* Needs aiofiles
 * Needs ASGI like uvicorn: pip install uvicorn
 * Create config.py from config.py.example and edit reddit login details
 * Run start.sh

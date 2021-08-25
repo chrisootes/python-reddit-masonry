@@ -125,11 +125,24 @@ class Reddit:
             'limit': limit,
         }
 
-        endpoint_multi = f'/api/multi/{subreddit}'
+        mine = self.request('/api/multi/mine')
+        #logger.debug(f"mine: {mine}")
+
+        #endpoint_multi = f'/api/multi/{subreddit}'
+        #subreddits = self.request(endpoint_multi)
+
+        endpoint = 'r/'
 
         # Convert list of subbreddits in multi to endpoint
-        subreddits = self.request(endpoint_multi)
-        endpoint = f'r/{subreddits}/{order}'
+        for multi in mine:
+            if multi['data']['name'] == subreddit:
+                for subreddit in multi['data']['subreddits']:
+                    endpoint += subreddit['name']
+                    endpoint += '+'
+
+
+        endpoint += f'empty/{order}'
+        logger.debug(f"endpoint: {endpoint}")
 
         listing = self.request(endpoint, params=params)
         for post in listing['data']['children']:
