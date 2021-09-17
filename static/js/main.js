@@ -32,8 +32,8 @@ function append() {
             setTimeout(update, 2000);
             // Replace next page url with new one
             // The last 5 characters of the path are the id of last post
-            // TODO use libary to parse and create url
-            new_next_page_link = last_page.split('?')[0] + '?after=' + $last_elems.get(-1).id; 
+            let new_next_page_link = new URL(document.location);
+            new_next_page_link.searchParams.set("after", $last_elems.get(-1).id)
             console.debug('New next page link: ', new_next_page_link);
             $(".next-page").attr('href', new_next_page_link)
             // Enable scroll events

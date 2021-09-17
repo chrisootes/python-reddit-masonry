@@ -91,7 +91,7 @@ async def app(scope, receive, send):
                     generator_type = session.generator_subredit
                 else:
                     raise Exception("Empty subreddit given")
-            elif path_splitted[1] == 'multi':
+            elif path_splitted[1] == 'm':
                 if path_splitted[2] != '':
                     subreddit = path_splitted[2]
                     generator_type = session.generator_multi
@@ -118,23 +118,40 @@ async def app(scope, receive, send):
         query = urllib.parse.parse_qs(query_string)
 
         # Check for raw in query
-        raw = query.get('raw', False)
+        raw = query.get('raw', [False])[0]
         logger.debug(f"POST query: raw={raw}")
 
         # Check for after in query
-        after = query.get('after', '')
+        after = query.get('after', [''])[0]
         logger.debug(f"POST query: after={after}")
+
+        # Check for order in query
+        order = query.get('order', ['hot'])[0]
+        logger.debug(f"POST query: order={order}")
+
+        # Check for background in query
+        background = query.get('background', [False])[0]
+        logger.debug(f"POST query: background={background}")
+
+        # Check for check in query
+        check = query.get('check', [False])[0]
+        logger.debug(f"POST query: check={check}")
+
+        # With background dont put the images and video in a card
+        format_post = helpers.format_post
+        if background:
+            format_post = helpers.format_post_background
         
+        # Raw only gives post html no thing more
         if raw:
             logger.debug(f"Items only for subreddit: {subreddit}")
-            posts = generator_type(subreddit=subreddit, start_after=after)
+            posts = generator_type(subreddit=subreddit, order=order, start_after=after)
             for post in posts:
                 after = post['name']
-                # TODO make filter a POST option like raw
-                if session.check(post):
+                if session.check(post) or not check:
                     await send({
                         'type': 'http.response.body',
-                        'body': helpers.format_post(post).encode('utf-8'),
+                        'body': format_post(post).encode('utf-8'),
                         'more_body': True
                     })
 
@@ -145,8 +162,12 @@ async def app(scope, receive, send):
                 'more_body': False
             })
             return
-
-        template = await aiofiles.open('template_page.html', mode='r')
+        
+        # Load different templete for background
+        template_filename = 'template_page.html'
+        if background:
+            template_filename = 'template_background.html'
+        template = await aiofiles.open(template_filename, mode='r')
         # Loop template
         while True:
             line = await template.readline()
@@ -175,24 +196,26 @@ async def app(scope, receive, send):
 
                 # Template key: page
                 elif splitted[1] == 'page':
+                    # Build next url with all options in query string so next page has also the options like order and check
+                    next_url = f"{scope['path']}?after={after}&{query_string}"
+                    logger.debug(f"next_url: {next_url}")
                     await send({
                         'type': 'http.response.body',
-                        'body': f"{scope['path']}?after={after}".encode('utf-8'),
+                        'body': next_url.encode('utf-8'),
                         'more_body': True
                     })
 
                 # Template key: items
                 elif splitted[1] == 'items':
                     logger.debug(f"Getting {subreddit} on page {after}")
-                    posts = generator_type(subreddit=subreddit, start_after=after)
+                    posts = generator_type(subreddit=subreddit, order=order, start_after=after)
                     for post in posts:
                         # Used in template key: page
                         after = post['name']
-                        # TODO make filter a POST option like raw
-                        if session.check(post):
+                        if session.check(post) or not check:
                             await send({
                                 'type': 'http.response.body',
-                                'body': helpers.format_post(post).encode('utf-8'),
+                                'body': format_post(post).encode('utf-8'),
                                 'more_body': True
                             })
 
