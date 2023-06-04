@@ -4,6 +4,7 @@ import datetime
 import urllib.parse
 import logging
 import mimetypes
+import asyncio
 
 import aiofiles
 
@@ -218,16 +219,19 @@ async def app(scope, receive, send):
                     # Template key: items
                     elif split_part == 'items':
                         logger.debug(f"Getting {subreddit} on page {after}")
-                        posts = generator_type(subreddit=subreddit, order=order, start_after=after)
+                        posts = []
+                        try:
+                            posts = generator_type(subreddit=subreddit, order=order, start_after=after, check=check)
+                        except:
+                            logger.exception("Catched post generator exception")
                         for post in posts:
                             # Used in template key: page
                             after = post['name']
-                            if session.check(post) or not check:
-                                await send({
-                                    'type': 'http.response.body',
-                                    'body': format_post(post).encode('utf-8'),
-                                    'more_body': True
-                                })
+                            await send({
+                                'type': 'http.response.body',
+                                'body': format_post(post).encode('utf-8'),
+                                'more_body': True
+                            })
 
                     # TODO Incomplete key
                     else:

@@ -2,3 +2,4 @@ config.py
 __pycache__
 nginx*
 environment
+redgifs_autoplay_isssue

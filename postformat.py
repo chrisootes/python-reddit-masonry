@@ -17,7 +17,7 @@ def format_post(post: dict) -> str:
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
                     <video controls=true poster="{post['thumbnail']}" preload="auto" muted=false loop=false webkit-playsinline="" style="width: 100%; height: 100%;">
-                        <source src="{post['preview']['images'][0]['variants']['mp4']['source']['url']}" type="video/mp4">
+                        <source src="{post['mp4']}" type="video/mp4">
                     </video>
                     <div class="card-body">
                         <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
@@ -80,11 +80,12 @@ def format_post(post: dict) -> str:
         """
     elif 'redgif' in post['url']:
         redgifs_id = parsed.path.split('.')[0].split('/')[-1].split('-')[0]
+        #<iframe src='https://www.redgifs.com/ifr/lopsidedoddballharvestmen' frameborder='0' scrolling='no' allowfullscreen width='1080' height='1920'></iframe><p><a href='https://www.redgifs.com/watch/lopsidedoddballharvestmen'>via RedGIFs</a></p>
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
                     <div style='position:relative; padding-bottom:88.67%;'>
-                        <iframe src='https://redgifs.com/ifr/{redgifs_id}?autoplay=0&controls=0' frameborder='0' scrolling='no' width='100%' height='100%' style='position:absolute;top:0;left:0;' allowfullscreen></iframe>
+                        <iframe src='https://redgifs.com/ifr/{redgifs_id}?autoplay=0' frameborder='0' scrolling='no' allowfullscreen width='100%' height='100%' style='position:absolute;top:0;left:0;'></iframe>
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
@@ -98,7 +99,7 @@ def format_post(post: dict) -> str:
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
                     <div style='position:relative; padding-bottom:88.67%;'>
-                        <iframe src='https://gfycat.com/ifr/{gfycat_id}?autoplay=0&controls=0' frameborder='0' scrolling='no' width='100%' height='100%' style='position:absolute;top:0;left:0;' allowfullscreen></iframe>
+                        <iframe src='https://gfycat.com/ifr/{gfycat_id}?autoplay=0&controls=1' frameborder='0' scrolling='no' allowfullscreen width='100%' height='100%' style='position:absolute;top:0;left:0;'></iframe>
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>

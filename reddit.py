@@ -4,9 +4,14 @@
 import time
 import logging
 import urllib.parse
+import asyncio
+import queue
+import threading
 
 import requests
 import requests.auth
+import json_stream
+import json_stream.requests
 import demoji
 
 import config
@@ -17,11 +22,14 @@ logger = logging.getLogger(__name__)
 
 class Reddit:
     def __init__(self):
+        self.session = requests.Session()
+
         # Create basic auth connection
         client_auth = requests.auth.HTTPBasicAuth(
             config.REDDIT_CLIENT_ID,
             config.REDDIT_CLIENT_SECRET
         )
+        
         # With POST data
         post_data = {
             "grant_type": "password",
@@ -33,8 +41,8 @@ class Reddit:
             "User-Agent": config.REDDIT_USERAGENT
         }
         # Execute request
-        response = requests.post(
-            "https://www.reddit.com/api/v1/access_token",
+        response = self.session.post(
+            url="https://www.reddit.com/api/v1/access_token",
             auth=client_auth,
             data=post_data,
             headers=headers
@@ -50,6 +58,7 @@ class Reddit:
     def request(self, endpoint, params={}):
         if self.ratelimit_remaining <= 2:
             logger.warning("Rate limit exeeded waiting")
+            # TODO fix block
             time.sleep(self.ratelimit_reset)
 
         headers = {
@@ -60,19 +69,56 @@ class Reddit:
             "https://oauth.reddit.com",
             endpoint
         )
-        response = requests.get(
-            url,
+        # Should not block much, because stream, so no big need for async
+        response = self.session.get(
+            url=url,
             headers=headers,
             params=params,
+            stream=True,
         )
+
+        # Convert json streamer callback to a post dict generator
+        generator_queue = queue.SimpleQueue ()
+        def visitor(item, path):
+            #logger.debug(f"{path} = {item}")
+            generator_queue.put((item, path))
+        logger.debug(f"start thread")
+        thread = threading.Thread(target=json_stream.requests.visit, args=(response, visitor))
+        thread.start()
+        current_post = {}
+        last_post_number = 0
+        logger.debug(f"start loop")
+        while True:
+            # TODO fix block
+            (item, path) = generator_queue.get()
+            # If path[2] changes then we have next post
+            if len(path) >= 3:
+                if last_post_number != path[2]:
+                    logger.debug(f"last_post_number {last_post_number}")
+                    last_post_number = path[2]
+                    yield current_post
+                    # TODO clean current_post     
+            # Common post root items
+            if len(path) == 5:
+                current_post[path[4]] = item
+            # One item in subdict
+            elif len(path) == 11:
+                if path == ('data', 'children', path[2], 'data', 'preview', 'images', 0, 'variants', 'mp4', 'source', 'url'):
+                    current_post['mp4'] = item
+            # Last item in JSON
+            if path[0] == 'data' and path[1] == 'before':
+                break
+        thread.join()
+        
         # Parse response
+        status_code = int(response.status_code)
+        if status_code != 200:
+            raise Exception(f"Status code: {status_code}")
         self.ratelimit_used = float(response.headers['x-ratelimit-used'])
         self.ratelimit_remaining = float(response.headers['x-ratelimit-remaining'])
         self.ratelimit_reset = float(response.headers['x-ratelimit-reset'])
-        response_json = response.json()
-        return response_json
 
-    def generator_front(self, subreddit=None, order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
+    def generator_front(self, subreddit=None, order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT, check=False):
         """
         This function returns a generator which you can loop for posts
         
@@ -86,13 +132,17 @@ class Reddit:
         }
         
         endpoint = f'/{order}'
-        listing = self.request(endpoint, params=params)
-        for post in listing['data']['children']:
-            yield post['data']
+        logger.debug(f"endpoint {endpoint}")
+
+        for post in self.request(endpoint, params=params):
+            if check:
+                if not self.check(post):
+                    continue
+            yield post
 
         logger.debug(f"Used: {self.ratelimit_used}")
 
-    def generator_subredit(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
+    def generator_subredit(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT, check=False):
         """
         This function returns a generator which you can loop for posts
         For normal subbredit and subreddit1+subreddit2 should work
@@ -105,14 +155,17 @@ class Reddit:
             'limit': limit,
         }
         endpoint = f'r/{subreddit}/{order}'
-
-        listing = self.request(endpoint, params=params)
-        for post in listing['data']['children']:
-            yield post['data']
+        logger.debug(f"endpoint {endpoint}")
+        
+        for post in self.request(endpoint, params=params):
+            if check:
+                if not self.check(post):
+                    continue
+            yield post
 
         logger.debug(f"Used: {self.ratelimit_used}")
 
-    def generator_multi(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT):
+    async def generator_multi(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT, check=False):
         """
         This function returns a generator which you can loop for posts
         
@@ -143,9 +196,11 @@ class Reddit:
         endpoint += f'empty/{order}'
         logger.debug(f"endpoint: {endpoint}")
 
-        listing = self.request(endpoint, params=params)
-        for post in listing['data']['children']:
-            yield post['data']
+        for post in self.request(endpoint, params=params):
+            if check:
+                if not self.check(post):
+                    continue
+            yield post
 
         logger.debug(f"Used: {self.ratelimit_used}")
 
@@ -153,6 +208,7 @@ class Reddit:
         """
         This function checks the quality of a post
         Posts with emoji are of usually lower quality
+        Returns False when it needs to been filtered
         """
         try:
             #logger.debug(post)
