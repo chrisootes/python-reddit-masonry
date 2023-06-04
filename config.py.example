@@ -4,4 +4,5 @@ REDDIT_USERNAME = ""
 REDDIT_PASSWORD = ""
 REDDIT_USERAGENT = "github.com/chrisootes/reddit-masonry"
 
-PAGE_ITEM_AMOUNT = 25 
+PAGE_ITEM_AMOUNT = 25
+FILE_BLOCK_SIZE = 64 * 1024

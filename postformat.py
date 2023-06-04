@@ -11,7 +11,21 @@ def format_post(post: dict) -> str:
     """
     parsed = urllib.parse.urlparse(post['url'])
     logger.debug(f"Sending post: {post['name']}")
-    if 'i.redd.it' in post['url']:
+    if 'i.redd.it' in post['url'] and '.gif' in post['url']:
+        #logger.debug(f"Preview: {post['preview']}")
+        return f"""
+            <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
+                <div class="card">
+                    <video controls=true poster="{post['thumbnail']}" preload="auto" muted=false loop=false webkit-playsinline="" style="width: 100%; height: 100%;">
+                        <source src="{post['preview']['images'][0]['variants']['mp4']['source']['url']}" type="video/mp4">
+                    </video>
+                    <div class="card-body">
+                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                    </div>
+                </div>
+            </div>
+        """
+    elif 'i.redd.it' in post['url']:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
@@ -27,7 +41,7 @@ def format_post(post: dict) -> str:
             return f"""
                 <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                     <div class="card">
-                        <video data-dashjs-player autoplay src="{post['media']['reddit_video']['dash_url']}" controls></video>
+                        <video data-dashjs-player src="{post['media']['reddit_video']['dash_url']}" controls></video>
                         <div class="card-body">
                             <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
                         </div>
@@ -42,7 +56,7 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
-                    <video controls poster="//i.imgur.com/{imgur_id}.jpg" preload="auto" autoplay="autoplay" muted="muted" loop="loop" webkit-playsinline="" style="width: 100%; height: 100%;">
+                    <video controls=true poster="{post['thumbnail']}" preload="auto" muted=false loop=false webkit-playsinline="" style="width: 100%; height: 100%;">
                         <source src="//i.imgur.com/{imgur_id}.mp4" type="video/mp4">
                     </video>
                     <div class="card-body">
@@ -65,12 +79,26 @@ def format_post(post: dict) -> str:
             </div>
         """
     elif 'redgif' in post['url']:
-        redgifs_id = parsed.path.split('.')[0].split('/')[-1]
+        redgifs_id = parsed.path.split('.')[0].split('/')[-1].split('-')[0]
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
                     <div style='position:relative; padding-bottom:88.67%;'>
-                        <iframe src='https://redgifs.com/ifr/{redgifs_id}' frameborder='0' scrolling='no' width='100%' height='100%' style='position:absolute;top:0;left:0;' allowfullscreen></iframe>
+                        <iframe src='https://redgifs.com/ifr/{redgifs_id}?autoplay=0&controls=0' frameborder='0' scrolling='no' width='100%' height='100%' style='position:absolute;top:0;left:0;' allowfullscreen></iframe>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                    </div>
+                </div>
+            </div>
+        """
+    elif 'gfycat' in post['url']:
+        gfycat_id = parsed.path.split('.')[0].split('/')[-1].split('-')[0]
+        return f"""
+            <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
+                <div class="card">
+                    <div style='position:relative; padding-bottom:88.67%;'>
+                        <iframe src='https://gfycat.com/ifr/{gfycat_id}?autoplay=0&controls=0' frameborder='0' scrolling='no' width='100%' height='100%' style='position:absolute;top:0;left:0;' allowfullscreen></iframe>
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
@@ -79,7 +107,7 @@ def format_post(post: dict) -> str:
             </div>
         """
     else:
-        thumbnail = post.get('thumbnail', '/favicon.ico')
+        thumbnail = post.get('thumbnail', '')
         thumbnail = thumbnail if thumbnail != '' else '/favicon.ico'
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">

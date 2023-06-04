@@ -140,7 +140,6 @@ class Reddit:
                     endpoint += subreddit['name']
                     endpoint += '+'
 
-
         endpoint += f'empty/{order}'
         logger.debug(f"endpoint: {endpoint}")
 
@@ -156,8 +155,10 @@ class Reddit:
         Posts with emoji are of usually lower quality
         """
         try:
+            #logger.debug(post)
+
             if post['score'] < 2:
-                logger.debug(f"Score filtered: {post['name']}")
+                logger.info(f"Score filtered: http://old.reddit.com/comments/{post['id']}")
                 return False
 
             # Check gif
@@ -177,7 +178,7 @@ class Reddit:
                 ':)' in post['title'] or \
                     '(;' in post['title']:
 
-                logger.debug(f"Emoji filtered: {post['name']}")
+                logger.info(f"Emoji filtered: http://old.reddit.com/comments/{post['id']}")
                 return False
 
             if 'OC' in post['title'] or \
@@ -198,20 +199,20 @@ class Reddit:
                 'M]' in post['title'] or \
                     'I ' in post['title']:
 
-                logger.debug(f"Post title filtered: {post['name']}")
+                logger.info(f"Post title filtered: http://old.reddit.com/comments/{post['id']}")
                 return False
 
             if post['is_self']:
-                logger.debug(f"Self filtered: {post['name']}")
+                logger.info(f"Self filtered: http://old.reddit.com/comments/{post['id']}")
                 return False
 
             if post['is_original_content']:
-                logger.debug(f"OC filtered: {post['name']}")
+                logger.info(f"OC filtered: http://old.reddit.com/comments/{post['id']}")
                 return False
 
             if 'reddit.com' in post['url']:
                 # TODO browse to post
-                logger.debug(f"X-post filtered: {post['name']}")
+                logger.info(f"X-post filtered: http://old.reddit.com/comments/{post['id']}")
                 return False
 
             author_id = post['author_fullname']
@@ -225,7 +226,7 @@ class Reddit:
             return True
 
         except:
-            logger.exception(f"Post failed: {post['name']}")
+            logger.exception(f"Post failed: http://old.reddit.com/comments/{post['id']}")
 
 
 # Test
