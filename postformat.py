@@ -16,11 +16,12 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
+                    <h3 class="card-header">{post['title']}</h3>
                     <video controls=true poster="{post['thumbnail']}" preload="auto" muted=false loop=false webkit-playsinline="" style="width: 100%; height: 100%;">
                         <source src="{post['mp4']}" type="video/mp4">
                     </video>
                     <div class="card-body">
-                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                        <p class="card-text">{post['subreddit_name_prefixed']} - <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a></p>
                     </div>
                 </div>
             </div>
@@ -29,9 +30,10 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
-                     <a href="{post['url']}"><img class="card-img-top" style="width: 100%;" src="{post['url']}"></a>
+                    <h3 class="card-header">{post['title']}</h3>
+                    <img class="card-img-top" style="width: 100%;" src="{post['url']}">
                     <div class="card-body">
-                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                        <p class="card-text">{post['subreddit_name_prefixed']} - <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a></p>
                     </div>
                 </div>
             </div>
@@ -41,9 +43,11 @@ def format_post(post: dict) -> str:
             return f"""
                 <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                     <div class="card">
+                        <h3 class="card-header">{post['title']}</h3>
                         <video data-dashjs-player src="{post['media']['reddit_video']['dash_url']}" controls></video>
                         <div class="card-body">
-                            <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                            <p class="card-text">{post['subreddit_name_prefixed']}</p>
+                             <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a>
                         </div>
                     </div>
                 </div>
@@ -56,11 +60,12 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
+                    <h3 class="card-header">{post['title']}</h3>
                     <video controls=true poster="{post['thumbnail']}" preload="auto" muted=false loop=false webkit-playsinline="" style="width: 100%; height: 100%;">
                         <source src="//i.imgur.com/{imgur_id}.mp4" type="video/mp4">
                     </video>
                     <div class="card-body">
-                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                        <p class="card-text">{post['subreddit_name_prefixed']} - <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a></p>
                     </div>
                 </div>
             </div>
@@ -71,9 +76,10 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
-                    <a href="{post['url']}"><img class="" style="width: 100%;" src="//i.imgur.com/{imgur_id}.jpg"></a>
+                    <h3 class="card-header">{post['title']}</h3>
+                    <img class="" style="width: 100%;" src="//i.imgur.com/{imgur_id}.jpg">
                     <div class="card-body">
-                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                        <p class="card-text">{post['subreddit_name_prefixed']} - <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a></p>
                     </div>
                 </div>
             </div>
@@ -84,11 +90,12 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
+                    <h3 class="card-header">{post['title']}</h3>
                     <div style='position:relative; padding-bottom:88.67%;'>
-                        <iframe src='https://redgifs.com/ifr/{redgifs_id}?autoplay=0' frameborder='0' scrolling='no' allowfullscreen width='100%' height='100%' style='position:absolute;top:0;left:0;'></iframe>
+                        <iframe src='https://redgifs.com/ifr/{redgifs_id}' frameborder='0' scrolling='no' allowfullscreen width='100%' height='100%' style='position:absolute;top:0;left:0;'></iframe>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                        <p class="card-text">{post['subreddit_name_prefixed']} - <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a></p>
                     </div>
                 </div>
             </div>
@@ -98,11 +105,12 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
+                    <h3 class="card-header">{post['title']}</h3>
                     <div style='position:relative; padding-bottom:88.67%;'>
                         <iframe src='https://gfycat.com/ifr/{gfycat_id}?autoplay=0&controls=1' frameborder='0' scrolling='no' allowfullscreen width='100%' height='100%' style='position:absolute;top:0;left:0;'></iframe>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                        <p class="card-text">{post['subreddit_name_prefixed']} - <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a></p>
                     </div>
                 </div>
             </div>
@@ -113,9 +121,10 @@ def format_post(post: dict) -> str:
         return f"""
             <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                 <div class="card">
-                    <a href="{post['url']}"><img class="card-img-top" style="width: 100%;" src="{thumbnail}"></a>
+                    <h3 class="card-header">{post['title']}</h3>
+                    <a href="{post['url']}" target="_blank"><img class="card-img-top" style="width: 100%;" src="{thumbnail}"></a>
                     <div class="card-body">
-                        <h5 class="card-title">{post['title']} <a href="http://old.reddit.com/comments/{post['id']}" class="btn btn-primary">Comments</a></h5>
+                        <p class="card-text">{post['subreddit_name_prefixed']} - <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a></p>
                     </div>
                 </div>
             </div>
