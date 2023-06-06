@@ -44,7 +44,7 @@ def default(post: dict) -> str:
                 <div id="{post['name']}" class="col-sm-12 col-lg-6 col-xxl-4">
                     <div class="card">
                         <h3 class="card-header">{post['title']}</h3>
-                        <video data-dashjs-player src="{post['media']['reddit_video']['dash_url']}" controls></video>
+                        <video data-dashjs-player src="{post['dash_url']}" controls></video>
                         <div class="card-body">
                             <p class="card-text">{post['subreddit_name_prefixed']}</p>
                              <a class="card-link" href="http://old.reddit.com/comments/{post['id']}" target="_blank">Comments</a>
