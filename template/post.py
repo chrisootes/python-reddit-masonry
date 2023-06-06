@@ -5,7 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def format_post(post: dict) -> str:
+def default(post: dict) -> str:
     """
     This function generates a embedded card html code from a PRAW post object
     """
@@ -131,7 +131,7 @@ def format_post(post: dict) -> str:
         """
     return ""
 
-def format_post_background(post: dict) -> str:
+def background(post: dict) -> str:
     """
     This function generates a embedded card html code from a PRAW post object
     """
