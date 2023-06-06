@@ -92,8 +92,8 @@ class Template:
                 more_body = len(data) == config.FILE_BLOCK_SIZE
                 await self.body(data, more_body)
 
-        # prevent RuntimeWarning: coroutine 'RequestResponseCycle.send' was never awaited
-        await self.latest_send_future
+            # prevent RuntimeWarning: coroutine 'RequestResponseCycle.send' was never awaited
+            await self.latest_send_future
 
     async def load(self, filename):
         self.filename = filename

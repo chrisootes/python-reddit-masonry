@@ -1,15 +1,12 @@
 #!python
 
 import datetime
-import urllib.parse
 import logging
-
-import aiofiles
 
 import config
 import helpers.template
 import helpers.reddit
-#import helpers.check
+import helpers.check
 import template.post
 
 logger = logging.getLogger(__name__)
@@ -42,14 +39,21 @@ async def app(scope, receive, send):
         elif scope['type'] != 'http':
             raise Exception("Unkown scope type")
         
+        #logger.debug(f"Path: {scope['path']}")
+        
+        # Template helper
         t = helpers.template.Template(scope, receive, send)
         
         # Redit posts generator
         endpoint = ''
+        #logger.debug(f"Match: {t.pget(1)}")
         match t.pget(1):
             case None:
                 # front
-                endpoint = f"/hot"
+                endpoint = "/hot"
+            case '':
+                # front
+                endpoint = "/hot"
             case 'r':
                 # subreddit
                 if t.pget(3,'') == 'self':
@@ -90,7 +94,11 @@ async def app(scope, receive, send):
                 for post in reddit_session.generator(endpoint, t.qget('after')):
                     # Used in template key: page
                     next_after = post['name']
-                    await t.body(post_formatter(post))
+                    if t.qget('check'):
+                        if helpers.check.check(post):
+                            await t.body(post_formatter(post))
+                    else:
+                        await t.body(post_formatter(post))
 
             # Template key: page
             elif key == 'page':

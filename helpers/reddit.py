@@ -4,7 +4,6 @@
 import time
 import logging
 import urllib.parse
-import asyncio
 import queue
 import threading
 
@@ -12,13 +11,10 @@ import requests
 import requests.auth
 import json_stream
 import json_stream.requests
-import demoji
 
 import config
 
 logger = logging.getLogger(__name__)
-
-# demoji.download_codes()
 
 class Reddit:
     def __init__(self):
@@ -114,6 +110,10 @@ class Reddit:
                 elif len(path) == 11:
                     if path == ('data', 'children', path[2], 'data', 'preview', 'images', 0, 'variants', 'mp4', 'source', 'url'):
                         current_post['mp4'] = item
+                elif len(path) == 6:
+                    if path == ('data', 'children', path[2], 'data', 'media', 'reddit_video', 'dash_url'):
+                        current_post['dash_url'] = item
+
                 # Last item in JSON
                 if path[0] == 'data' and path[1] == 'before':
                     break
