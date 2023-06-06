@@ -55,7 +55,7 @@ class Reddit:
 
         self.access_token = response_json['access_token']
 
-    def request(self, endpoint, params={}):
+    def request(self, endpoint, params={}, stream=False):
         if self.ratelimit_remaining <= 2:
             logger.warning("Rate limit exeeded waiting")
             # TODO fix block
@@ -74,41 +74,8 @@ class Reddit:
             url=url,
             headers=headers,
             params=params,
-            stream=True,
+            stream=stream,
         )
-
-        # Convert json streamer callback to a post dict generator
-        generator_queue = queue.SimpleQueue ()
-        def visitor(item, path):
-            #logger.debug(f"{path} = {item}")
-            generator_queue.put((item, path))
-        logger.debug(f"start thread")
-        thread = threading.Thread(target=json_stream.requests.visit, args=(response, visitor))
-        thread.start()
-        current_post = {}
-        last_post_number = 0
-        logger.debug(f"start loop")
-        while True:
-            # TODO fix block
-            (item, path) = generator_queue.get()
-            # If path[2] changes then we have next post
-            if len(path) >= 3:
-                if last_post_number != path[2]:
-                    logger.debug(f"last_post_number {last_post_number}")
-                    last_post_number = path[2]
-                    yield current_post
-                    # TODO clean current_post     
-            # Common post root items
-            if len(path) == 5:
-                current_post[path[4]] = item
-            # One item in subdict
-            elif len(path) == 11:
-                if path == ('data', 'children', path[2], 'data', 'preview', 'images', 0, 'variants', 'mp4', 'source', 'url'):
-                    current_post['mp4'] = item
-            # Last item in JSON
-            if path[0] == 'data' and path[1] == 'before':
-                break
-        thread.join()
         
         # Parse response
         status_code = int(response.status_code)
@@ -117,6 +84,42 @@ class Reddit:
         self.ratelimit_used = float(response.headers['x-ratelimit-used'])
         self.ratelimit_remaining = float(response.headers['x-ratelimit-remaining'])
         self.ratelimit_reset = float(response.headers['x-ratelimit-reset'])
+
+        if stream:
+            # Convert json streamer callback to a post dict generator
+            generator_queue = queue.SimpleQueue ()
+            def visitor(item, path):
+                #logger.debug(f"{path} = {item}")
+                generator_queue.put((item, path))
+            logger.debug(f"start thread")
+            thread = threading.Thread(target=json_stream.requests.visit, args=(response, visitor))
+            thread.start()
+            current_post = {}
+            last_post_number = 0
+            logger.debug(f"start loop")
+            while True:
+                # TODO fix block
+                (item, path) = generator_queue.get()
+                # If path[2] changes then we have next post
+                if len(path) >= 3:
+                    if last_post_number != path[2]:
+                        logger.debug(f"last_post_number {last_post_number}")
+                        last_post_number = path[2]
+                        yield current_post
+                        # TODO clean current_post     
+                # Common post root items
+                if len(path) == 5:
+                    current_post[path[4]] = item
+                # One item in subdict
+                elif len(path) == 11:
+                    if path == ('data', 'children', path[2], 'data', 'preview', 'images', 0, 'variants', 'mp4', 'source', 'url'):
+                        current_post['mp4'] = item
+                # Last item in JSON
+                if path[0] == 'data' and path[1] == 'before':
+                    break
+            thread.join()
+        else:
+            return response.json()
 
     def generator_front(self, subreddit=None, order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT, check=False):
         """
@@ -134,7 +137,7 @@ class Reddit:
         endpoint = f'/{order}'
         logger.debug(f"endpoint {endpoint}")
 
-        for post in self.request(endpoint, params=params):
+        for post in self.request(endpoint, params=params, stream=True):
             if check:
                 if not self.check(post):
                     continue
@@ -157,7 +160,7 @@ class Reddit:
         endpoint = f'r/{subreddit}/{order}'
         logger.debug(f"endpoint {endpoint}")
         
-        for post in self.request(endpoint, params=params):
+        for post in self.request(endpoint, params=params, stream=True):
             if check:
                 if not self.check(post):
                     continue
@@ -165,7 +168,7 @@ class Reddit:
 
         logger.debug(f"Used: {self.ratelimit_used}")
 
-    async def generator_multi(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT, check=False):
+    def generator_multi(self, subreddit='all', order='hot', start_after='', limit=config.PAGE_ITEM_AMOUNT, check=False):
         """
         This function returns a generator which you can loop for posts
         
@@ -178,8 +181,9 @@ class Reddit:
             'limit': limit,
         }
 
+        # TODO fix broken
         mine = self.request('/api/multi/mine')
-        #logger.debug(f"mine: {mine}")
+        logger.debug(f"mine: {mine}")
 
         #endpoint_multi = f'/api/multi/{subreddit}'
         #subreddits = self.request(endpoint_multi)
@@ -196,7 +200,7 @@ class Reddit:
         endpoint += f'empty/{order}'
         logger.debug(f"endpoint: {endpoint}")
 
-        for post in self.request(endpoint, params=params):
+        for post in self.request(endpoint, params=params, stream=True):
             if check:
                 if not self.check(post):
                     continue
